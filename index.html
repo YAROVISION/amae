@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Плавна Аура | База Емоцій</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            
+            --glow-pos: rgba(251, 194, 235, 0.4);
+            --glow-neg: rgba(48, 207, 208, 0.4);
+            --glow-mix: rgba(168, 237, 234, 0.4);
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(48, 207, 208, 0.1), transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(251, 194, 235, 0.1), transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            overflow-x: hidden;
+            width: 100vw;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 60px 4vw;
+            display: flex;
+            flex-direction: column;
+            gap: 60px;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 40px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: clamp(40px, 6vw, 80px);
+            line-height: 1.1;
+            background: linear-gradient(to right, #f8fafc, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+        
+        .hero-meta {
+            font-size: 14px;
+            color: var(--text-muted);
+            max-width: 600px;
+            font-weight: 300;
+        }
+
+        .search-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 24px auto 0 auto;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 14px 20px;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-input:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(255,255,255,0.05);
+        }
+
+        .category-section {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .category-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            font-weight: 600;
+            color: #e2e8f0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 16px;
+        }
+
+        .valence-group {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .valence-header {
+            font-size: 18px;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .valence-header.positive { color: #fbc2eb; }
+        .valence-header.negative { color: #30cfd0; }
+        .valence-header.mixed { color: #a8edea; }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .emotion-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .emotion-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .emotion-card:hover {
+            transform: translateY(-6px);
+            background: rgba(255, 255, 255, 0.06);
+        }
+        
+        .emotion-card:hover::before { opacity: 1; }
+
+        .emotion-card.pos:hover { box-shadow: 0 16px 40px rgba(251, 194, 235, 0.15); border-color: rgba(251, 194, 235, 0.3); }
+        .emotion-card.neg:hover { box-shadow: 0 16px 40px rgba(48, 207, 208, 0.15); border-color: rgba(48, 207, 208, 0.3); }
+        .emotion-card.mix:hover { box-shadow: 0 16px 40px rgba(168, 237, 234, 0.15); border-color: rgba(168, 237, 234, 0.3); }
+
+        .quest-title {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .quest-desc { 
+            font-size: 13px; 
+            color: var(--text-muted); 
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(11, 15, 25, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: rgba(20, 25, 40, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+            max-width: 600px;
+            width: 90%;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(40px) scale(0.95);
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .modal-overlay.active .modal-box {
+            transform: translateY(0) scale(1);
+        }
+        
+        .modal-gradient-bg {
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 150px;
+            background: radial-gradient(ellipse at top, rgba(255,255,255,0.1), transparent);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .modal-content-wrap {
+            position: relative;
+            z-index: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .modal-title-area {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .modal-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            font-weight: 600;
+            line-height: 1.1;
+            color: #fff;
+        }
+        
+        .modal-eng {
+            font-size: 13px;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .modal-close {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-muted);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 18px;
+        }
+        .modal-close:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        .modal-text {
+            font-size: 18px;
+            line-height: 1.7;
+            font-weight: 300;
+            color: #e2e8f0;
+        }
+        
+        .scroll-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            z-index: 90;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .scroll-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .scroll-to-top:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(255,255,255,0.1);
+        }
+        
+        /* Mobile Adaptaion */
+        @media (max-width: 768px) {
+            .container { padding: 40px 5vw 100px 5vw; gap: 40px; }
+            h1 { font-size: 40px; }
+            .category-title { font-size: 28px; }
+            .scroll-to-top { bottom: 90px; right: 20px; width: 44px; height: 44px; font-size: 20px; }
+            .category-title { font-size: 28px; }
+            .cards-grid { grid-template-columns: 1fr; }
+            .modal-content-wrap { padding: 24px; }
+            .modal-header h2 { font-size: 28px; }
+            
+            .mobile-action-bar {
+                display: flex;
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90vw;
+                padding: 16px;
+                background: rgba(20, 25, 40, 0.7);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                border: 1px solid rgba(255,255,255,0.1);
+                border-radius: 20px;
+                z-index: 50;
+                justify-content: center;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            }
+            
+            .btn-random {
+                background: rgba(255,255,255,0.1);
+                color: #fff;
+                border: none;
+                border-radius: 12px;
+                font-family: 'Inter', sans-serif;
+                font-size: 15px;
+                font-weight: 500;
+                padding: 12px 24px;
+                cursor: pointer;
+                width: 100%;
+                text-align: center;
+                transition: background 0.2s;
+            }
+            .btn-random:active {
+                background: rgba(255,255,255,0.2);
+            }
+        }
+        @media (min-width: 769px) {
+            .mobile-action-bar { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>База Емоцій</h1>
+            <div class="hero-meta">
+                <p style="margin-bottom: 16px; font-weight: 500;">Енциклопедія людських емоцій • 154 записи</p>
+                <p style="font-size: 15px; color: #cbd5e1; max-width: 600px; line-height: 1.6; font-weight: 400; margin: 0 auto;">Цей проєкт створено на основі праці Тіффані Вотт Сміт <b>«Книга людських емоцій»</b> (The Book of Human Emotions). Це інтерактивна база даних, покликана допомогти вам дослідити найтонші відтінки внутрішніх станів, зрозуміти їхню природу та знайти точні слова для почуттів, які часто залишаються невисловленими.</p>
+            </div>
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Пошук емоції..." onkeyup="filterEmotions()">
+            </div>
+        </div>
+
+        <div class="category-section">
+            <h2 class="category-title">Екзистенційні - Абстрактні</h2>
+
+            <div class="valence-group">
+                <div class="valence-header positive">
+                    <span>Позитивні</span>
+                </div>
+                <div class="cards-grid">
+
+                    <div class="emotion-card pos" onclick="openModal('COMPASSION', 'Співчуття', 'Діяльне милосердя, співпереживання болю іншого з бажанням допомогти.', 'positive')">
+                        <div class="quest-title">Співчуття</div>
+                        <div class="quest-desc">COMPASSION</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('ECSTASY', 'Екстаз', 'Стан виходу за межі себе, найвищий ступінь захоплення та трансу.', 'positive')">
+                        <div class="quest-title">Екстаз</div>
+                        <div class="quest-desc">ECSTASY</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('EUPHORIA', 'Ейфорія', 'Стан надзвичайного, всеосяжного піднесення та радості.', 'positive')">
+                        <div class="quest-title">Ейфорія</div>
+                        <div class="quest-desc">EUPHORIA</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('JOY', 'Радість', 'Фундаментальне відчуття внутрішньої світлості та щастя.', 'positive')">
+                        <div class="quest-title">Радість</div>
+                        <div class="quest-desc">JOY</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('LOVE', 'Любов', 'Глибока прихильність, турбота та найсильніший зв\'язок з кимось або чимось.', 'positive')">
+                        <div class="quest-title">Любов</div>
+                        <div class="quest-desc">LOVE</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="valence-group">
+                <div class="valence-header mixed">
+                    <span>Змішані</span>
+                </div>
+                <div class="cards-grid">
+
+                    <div class="emotion-card mix" onclick="openModal('MONO NO AWARE', 'Моно-но-аваре', 'Японська емоція: сумна краса швидкоплинності речей, легкий смуток через те, що ніщо не вічне.', 'mixed')">
+                        <div class="quest-title">Моно-но-аваре</div>
+                        <div class="quest-desc">MONO NO AWARE</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('SAUDADE', 'Саудаде', 'Португальська: глибока ностальгійна туга за тим, чого немає, змішана з любов\'ю до цього.', 'mixed')">
+                        <div class="quest-title">Саудаде</div>
+                        <div class="quest-desc">SAUDADE</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('WONDER', 'Диво / Трепет', 'Глибокий подив і трепет перед величчю світу або чимось незбагненним.', 'mixed')">
+                        <div class="quest-title">Диво / Трепет</div>
+                        <div class="quest-desc">WONDER</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="valence-group">
+                <div class="valence-header negative">
+                    <span>Негативні</span>
+                </div>
+                <div class="cards-grid">
+
+                    <div class="emotion-card neg" onclick="openModal('ACEDIA', 'Ацедія', 'Непереборна екзистенційна нудьга та апатія, втрата сенсу і духовне виснаження.', 'negative')">
+                        <div class="quest-title">Ацедія</div>
+                        <div class="quest-desc">ACEDIA</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('AL', 'Жаль (Żal)', 'Польське почуття глибокого суму, туги та жалю через безповоротну втрату.', 'negative')">
+                        <div class="quest-title">Жаль (Żal)</div>
+                        <div class="quest-desc">AL</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('DESPAIR', 'Відчай', 'Повна втрата надії, стан, коли майбутнє здається абсолютно безпросвітним.', 'negative')">
+                        <div class="quest-title">Відчай</div>
+                        <div class="quest-desc">DESPAIR</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('LONELINESS', 'Самотність', 'Глибоке відчуття ізоляції та відірваності від інших, навіть у натовпі.', 'negative')">
+                        <div class="quest-title">Самотність</div>
+                        <div class="quest-desc">LONELINESS</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('MELANCHOLY', 'Меланхолія', 'Світла або глибока туга, замислений сум, який часто надихає на роздуми.', 'negative')">
+                        <div class="quest-title">Меланхолія</div>
+                        <div class="quest-desc">MELANCHOLY</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('TOSKA', 'Тоска', 'Духовна туга без видимої причини, томління душі та відчуття нестачі чогось невідомого.', 'negative')">
+                        <div class="quest-title">Тоска</div>
+                        <div class="quest-desc">TOSKA</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('VIRAHA', 'Віраха', 'Усвідомлення глибокої любові через біль розлуки (хінді).', 'negative')">
+                        <div class="quest-title">Віраха</div>
+                        <div class="quest-desc">VIRAHA</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('VULNERABILITY', 'Вразливість', 'Гостре відчуття власної беззахисності перед світом або обставинами.', 'negative')">
+                        <div class="quest-title">Вразливість</div>
+                        <div class="quest-desc">VULNERABILITY</div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="category-section">
+            <h2 class="category-title">Базові - Загальні</h2>
+
+            <div class="valence-group">
+                <div class="valence-header positive">
+                    <span>Позитивні</span>
+                </div>
+                <div class="cards-grid">
+
+                    <div class="emotion-card pos" onclick="openModal('CALM', 'Спокій', 'Безтурботний, урівноважений стан без стресу та тривог.', 'positive')">
+                        <div class="quest-title">Спокій</div>
+                        <div class="quest-desc">CALM</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('CAREFREE', 'Безтурботність', 'Відчуття легкості та свободи від будь-яких зобов\'язань і проблем.', 'positive')">
+                        <div class="quest-title">Безтурботність</div>
+                        <div class="quest-desc">CAREFREE</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('CHEERFULNESS', 'Життєрадісність', 'Легкий, оптимістичний настрій, готовність радіти дрібницям.', 'positive')">
+                        <div class="quest-title">Життєрадісність</div>
+                        <div class="quest-desc">CHEERFULNESS</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('COMFORT', 'Комфорт', 'Відчуття фізичної та психологічної безпеки, затишку.', 'positive')">
+                        <div class="quest-title">Комфорт</div>
+                        <div class="quest-desc">COMFORT</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('CONFIDENCE', 'Впевненість', 'Тверда віра у власні сили та спроможність подолати перешкоди.', 'positive')">
+                        <div class="quest-title">Впевненість</div>
+                        <div class="quest-desc">CONFIDENCE</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('CONTENTMENT', 'Задоволеність', 'Глибоке відчуття того, що все так, як має бути; відсутність жаги більшого.', 'positive')">
+                        <div class="quest-title">Задоволеність</div>
+                        <div class="quest-desc">CONTENTMENT</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('COURAGE', 'Сміливість', 'Здатність діяти і зберігати ясність розуму всупереч страху.', 'positive')">
+                        <div class="quest-title">Сміливість</div>
+                        <div class="quest-desc">COURAGE</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('DELIGHT', 'Втіха / Захоплення', 'Радісна реакція на щось дуже приємне, що приносить велике задоволення.', 'positive')">
+                        <div class="quest-title">Втіха / Захоплення</div>
+                        <div class="quest-desc">DELIGHT</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('DESIRE', 'Бажання', 'Сильний потяг або прагнення до чогось чи когось.', 'positive')">
+                        <div class="quest-title">Бажання</div>
+                        <div class="quest-desc">DESIRE</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('EXCITEMENT', 'Захоплення / Збудження', 'Енергійний стан радісного очікування або проживання моменту.', 'positive')">
+                        <div class="quest-title">Захоплення / Збудження</div>
+                        <div class="quest-desc">EXCITEMENT</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('FEELING GOOD (About Yourself)', 'Відчуття власної гідності', 'Тиха радість і гордість за себе, усвідомлення власної цінності.', 'positive')">
+                        <div class="quest-title">Відчуття власної гідності</div>
+                        <div class="quest-desc">FEELING GOOD (About Yourself)</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('GLADSOMENESS', 'Радісність', 'Світла, привітна та відкрита радість.', 'positive')">
+                        <div class="quest-title">Радісність</div>
+                        <div class="quest-desc">GLADSOMENESS</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('GLEE', 'Бурхлива радість', 'Гучна, тріумфальна радість, іноді з відтінком зловтіхи.', 'positive')">
+                        <div class="quest-title">Бурхлива радість</div>
+                        <div class="quest-desc">GLEE</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('GRATITUDE', 'Вдячність', 'Тепле почуття вдячності за отримане добро чи допомогу.', 'positive')">
+                        <div class="quest-title">Вдячність</div>
+                        <div class="quest-desc">GRATITUDE</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('HAPPINESS', 'Щастя', 'Загальний стан глибокого добробуту і задоволення життям.', 'positive')">
+                        <div class="quest-title">Щастя</div>
+                        <div class="quest-desc">HAPPINESS</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('HOPEFULNESS', 'Надія', 'Світла віра в те, що майбутнє принесе щось хороше.', 'positive')">
+                        <div class="quest-title">Надія</div>
+                        <div class="quest-desc">HOPEFULNESS</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('PRIDE', 'Гордість', 'Задоволення від власних досягнень або досягнень близьких людей.', 'positive')">
+                        <div class="quest-title">Гордість</div>
+                        <div class="quest-desc">PRIDE</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('RELIEF', 'Полегшення', 'Спадання напруги, коли усунуто загрозу або біль.', 'positive')">
+                        <div class="quest-title">Полегшення</div>
+                        <div class="quest-desc">RELIEF</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('SATISFACTION', 'Задоволення', 'Почуття виконаного обов\'язку після досягнення мети або насичення.', 'positive')">
+                        <div class="quest-title">Задоволення</div>
+                        <div class="quest-desc">SATISFACTION</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('TRIUMPH', 'Тріумф', 'Екстатична гордість і радість від беззаперечної перемоги.', 'positive')">
+                        <div class="quest-title">Тріумф</div>
+                        <div class="quest-desc">TRIUMPH</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="valence-group">
+                <div class="valence-header mixed">
+                    <span>Змішані</span>
+                </div>
+                <div class="cards-grid">
+
+                    <div class="emotion-card mix" onclick="openModal('ANTICIPATION', 'Передчуття', 'Емоційне очікування події, яке може бути як радісним, так і тривожним.', 'mixed')">
+                        <div class="quest-title">Передчуття</div>
+                        <div class="quest-desc">ANTICIPATION</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('CURIOSITY', 'Цікавість', 'Жага до нових знань та вражень, прагнення досліджувати невідоме.', 'mixed')">
+                        <div class="quest-title">Цікавість</div>
+                        <div class="quest-desc">CURIOSITY</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('EMPATHY', 'Емпатія', 'Здатність відчувати емоції іншого так, ніби вони власні.', 'mixed')">
+                        <div class="quest-title">Емпатія</div>
+                        <div class="quest-desc">EMPATHY</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('RELUCTANCE', 'Неохота', 'Внутрішній опір перед виконанням дії, сумніви.', 'mixed')">
+                        <div class="quest-title">Неохота</div>
+                        <div class="quest-desc">RELUCTANCE</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('SHOCK', 'Шок', 'Гостра, раптова реакція на непередбачувану подію, що вибиває з колії.', 'mixed')">
+                        <div class="quest-title">Шок</div>
+                        <div class="quest-desc">SHOCK</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('SURPRISE', 'Сюрприз', 'Реакція на несподіванку, що може швидко змінитися радістю або страхом.', 'mixed')">
+                        <div class="quest-title">Сюрприз</div>
+                        <div class="quest-desc">SURPRISE</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('UNCERTAINTY', 'Невпевненість', 'Стан сумніву і вагання через брак інформації або розуміння.', 'mixed')">
+                        <div class="quest-title">Невпевненість</div>
+                        <div class="quest-desc">UNCERTAINTY</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="valence-group">
+                <div class="valence-header negative">
+                    <span>Негативні</span>
+                </div>
+                <div class="cards-grid">
+
+                    <div class="emotion-card neg" onclick="openModal('ANGER', 'Гнів', 'Сильне почуття невдоволення або агресії у відповідь на несправедливість чи загрозу.', 'negative')">
+                        <div class="quest-title">Гнів</div>
+                        <div class="quest-desc">ANGER</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('ANXIETY', 'Тривога', 'Невизначене, часто безпричинне хвилювання перед майбутнім.', 'negative')">
+                        <div class="quest-title">Тривога</div>
+                        <div class="quest-desc">ANXIETY</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('APATHY', 'Апатія', 'Байдужість, відсутність емоцій та мотивації до дій.', 'negative')">
+                        <div class="quest-title">Апатія</div>
+                        <div class="quest-desc">APATHY</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('BOREDOM', 'Нудьга', 'Стан незадоволеності через відсутність стимулів або інтересу до поточного заняття.', 'negative')">
+                        <div class="quest-title">Нудьга</div>
+                        <div class="quest-desc">BOREDOM</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('CONTEMPT', 'Презирство', 'Відчуття власної вищості та зневага до когось або чогось.', 'negative')">
+                        <div class="quest-title">Презирство</div>
+                        <div class="quest-desc">CONTEMPT</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('DISAPPOINTMENT', 'Розчарування', 'Гіркота від нездійснених очікувань або сподівань.', 'negative')">
+                        <div class="quest-title">Розчарування</div>
+                        <div class="quest-desc">DISAPPOINTMENT</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('DISGUST', 'Огида', 'Сильне почуття відторгнення, викликане чимось неприємним або аморальним.', 'negative')">
+                        <div class="quest-title">Огида</div>
+                        <div class="quest-desc">DISGUST</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('DISMAY', 'Збентеження', 'Суміш переляку, розгубленості та смутку від несподіваної поганої новини.', 'negative')">
+                        <div class="quest-title">Збентеження</div>
+                        <div class="quest-desc">DISMAY</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('DREAD', 'Моторошний страх', 'Темне, гнітюче передчуття чогось жахливого в майбутньому.', 'negative')">
+                        <div class="quest-title">Моторошний страх</div>
+                        <div class="quest-desc">DREAD</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('ENVY', 'Заздрість', 'Бажання мати те, що є в іншого, часто з відчуттям власної меншовартості.', 'negative')">
+                        <div class="quest-title">Заздрість</div>
+                        <div class="quest-desc">ENVY</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('FEAR', 'Страх', 'Базова захисна реакція на реальну або уявну небезпеку.', 'negative')">
+                        <div class="quest-title">Страх</div>
+                        <div class="quest-desc">FEAR</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('FRUSTRATION', 'Фрустрація', 'Роздратування і безпорадність від неможливості досягти бажаного.', 'negative')">
+                        <div class="quest-title">Фрустрація</div>
+                        <div class="quest-desc">FRUSTRATION</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('GRIEF', 'Горе', 'Глибока скорбота після важкої втрати, зазвичай смерті близької людини.', 'negative')">
+                        <div class="quest-title">Горе</div>
+                        <div class="quest-desc">GRIEF</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('GUILT', 'Провина', 'Важке внутрішнє усвідомлення власної неправоти або скоєного зла.', 'negative')">
+                        <div class="quest-title">Провина</div>
+                        <div class="quest-desc">GUILT</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('HATRED', 'Ненависть', 'Інтенсивне, стійке почуття ворожості та антипатії.', 'negative')">
+                        <div class="quest-title">Ненависть</div>
+                        <div class="quest-desc">HATRED</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('IMPATIENCE', 'Нетерпіння', 'Роздратована нездатність чекати, бажання негайного результату.', 'negative')">
+                        <div class="quest-title">Нетерпіння</div>
+                        <div class="quest-desc">IMPATIENCE</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('IRRITATION', 'Роздратування', 'Поверхнева, але гостра реакція невдоволення на дрібні перешкоди.', 'negative')">
+                        <div class="quest-title">Роздратування</div>
+                        <div class="quest-desc">IRRITATION</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('JEALOUSY', 'Ревнощі', 'Страх втратити прихильність або увагу на користь суперника.', 'negative')">
+                        <div class="quest-title">Ревнощі</div>
+                        <div class="quest-desc">JEALOUSY</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('PANIC', 'Паніка', 'Раптовий, неконтрольований жах, що паралізує або змушує до хаотичних дій.', 'negative')">
+                        <div class="quest-title">Паніка</div>
+                        <div class="quest-desc">PANIC</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('REGRET', 'Жаль за скоєним', 'Сум і бажання змінити минуле через неправильний вибір.', 'negative')">
+                        <div class="quest-title">Жаль за скоєним</div>
+                        <div class="quest-desc">REGRET</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('REMORSE', 'Докори сумління', 'Гостре каяття, яке гризе зсередини за завдану комусь шкоду.', 'negative')">
+                        <div class="quest-title">Докори сумління</div>
+                        <div class="quest-desc">REMORSE</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('SADNESS', 'Смуток', 'Пригнічений настрій, пов\'язаний з втратою або невдачею.', 'negative')">
+                        <div class="quest-title">Смуток</div>
+                        <div class="quest-desc">SADNESS</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('SHAME', 'Сором', 'Вкрай болісне відчуття власної неповноцінності перед очима інших.', 'negative')">
+                        <div class="quest-title">Сором</div>
+                        <div class="quest-desc">SHAME</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('TERROR', 'Жах', 'Екстремальний страх, що повністю охоплює тіло й розум.', 'negative')">
+                        <div class="quest-title">Жах</div>
+                        <div class="quest-desc">TERROR</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('WORRY', 'Занепокоєння', 'Нав\'язливі думки про можливі проблеми чи негаразди.', 'negative')">
+                        <div class="quest-title">Занепокоєння</div>
+                        <div class="quest-desc">WORRY</div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="category-section">
+            <h2 class="category-title">Контекстуальні - Соціальні</h2>
+
+            <div class="valence-group">
+                <div class="valence-header positive">
+                    <span>Позитивні</span>
+                </div>
+                <div class="cards-grid">
+
+                    <div class="emotion-card pos" onclick="openModal('COMPERSION', 'Комперсія', 'Радість за радість іншого (часто про партнерів у немоногамних стосунках).', 'positive')">
+                        <div class="quest-title">Комперсія</div>
+                        <div class="quest-desc">COMPERSION</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('GEZELLIGHEID', 'Гезеллігхейд', 'Нідерландське: атмосфера затишку, тепла і спільності в колі близьких.', 'positive')">
+                        <div class="quest-title">Гезеллігхейд</div>
+                        <div class="quest-desc">GEZELLIGHEID</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('HOMEFULNESS', 'Відчуття дому', 'Глибоке задоволення і спокій від того, що ви нарешті вдома.', 'positive')">
+                        <div class="quest-title">Відчуття дому</div>
+                        <div class="quest-desc">HOMEFULNESS</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('HUMBLE Feeling', 'Смиренність', 'Позитивне відчуття власної скромності перед чимось величним.', 'positive')">
+                        <div class="quest-title">Смиренність</div>
+                        <div class="quest-desc">HUMBLE Feeling</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('HWYL', 'Хвіл', 'Валлійське: емоційне піднесення, ентузіазм та натхнення (часто в колективі).', 'positive')">
+                        <div class="quest-title">Хвіл</div>
+                        <div class="quest-desc">HWYL</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('IJIRASHII', 'Ідзірасії', 'Японське: розчулення і симпатія до того, хто мужньо старається попри перешкоди.', 'positive')">
+                        <div class="quest-title">Ідзірасії</div>
+                        <div class="quest-desc">IJIRASHII</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('MUDITA', 'Мудіта', 'Буддійська безкорислива, чиста радість успіхам інших (антонім заздрості).', 'positive')">
+                        <div class="quest-title">Мудіта</div>
+                        <div class="quest-desc">MUDITA</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('NAKHES', 'Нахес', 'Їдиш: особлива гордість і радість, яку батьки відчувають за досягнення дітей.', 'positive')">
+                        <div class="quest-title">Нахес</div>
+                        <div class="quest-desc">NAKHES</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('PRONOIA', 'Проноя', 'Віра в те, що світ вступив у змову, аби таємно вам допомогти (протилежність параної).', 'positive')">
+                        <div class="quest-title">Проноя</div>
+                        <div class="quest-desc">PRONOIA</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('WARM GLOW', 'Тепле сяйво', 'Фізично відчутне тепло і радість після зробленої доброї справи.', 'positive')">
+                        <div class="quest-title">Тепле сяйво</div>
+                        <div class="quest-desc">WARM GLOW</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="valence-group">
+                <div class="valence-header mixed">
+                    <span>Змішані</span>
+                </div>
+                <div class="cards-grid">
+
+                    <div class="emotion-card mix" onclick="openModal('AMAE', 'Амае', 'Японське: бажання бути залежним і любимим, опиратися на чиюсь турботу.', 'mixed')">
+                        <div class="quest-title">Амае</div>
+                        <div class="quest-desc">AMAE</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('BAFFLEMENT', 'Збентеження', 'Спантеличеність перед чимось складним або нелогічним.', 'mixed')">
+                        <div class="quest-title">Збентеження</div>
+                        <div class="quest-desc">BAFFLEMENT</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('BEFUDDLEMENT', 'Запаморочення / Спантеличеність', 'Стан легкої плутанини, коли думки втрачають ясність.', 'mixed')">
+                        <div class="quest-title">Запаморочення / Спантеличеність</div>
+                        <div class="quest-desc">BEFUDDLEMENT</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('BEWILDERMENT', 'Здивування', 'Повне спантеличення перед чимось, що не піддається осмисленню.', 'mixed')">
+                        <div class="quest-title">Здивування</div>
+                        <div class="quest-desc">BEWILDERMENT</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('BROODINESS', 'Материнська / батьківська туга', 'Фізичне та психологічне бажання мати дітей, або глибока замисленість.', 'mixed')">
+                        <div class="quest-title">Материнська / батьківська туга</div>
+                        <div class="quest-desc">BROODINESS</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('DPAYSEMENT', 'Депайземан', 'Французьке: дезорієнтація та відчуття чужинця в іншій країні або середовищі.', 'mixed')">
+                        <div class="quest-title">Депайземан</div>
+                        <div class="quest-desc">DPAYSEMENT</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('FAGO', 'Фаго', 'Мікронезійське: складна суміш любові, смутку та співчуття до когось, хто потребує допомоги.', 'mixed')">
+                        <div class="quest-title">Фаго</div>
+                        <div class="quest-desc">FAGO</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('GRENG JAI', 'Гренг Джай', 'Тайське: небажання завдавати клопоту або незручностей іншим.', 'mixed')">
+                        <div class="quest-title">Гренг Джай</div>
+                        <div class="quest-desc">GRENG JAI</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('HIRAETH', 'Хірает', 'Валлійське: туга за домом, до якого неможливо повернутись, або якого ніколи не було.', 'mixed')">
+                        <div class="quest-title">Хірает</div>
+                        <div class="quest-desc">HIRAETH</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('INHABITIVENESS', 'Прихильність до місця', 'Любов та тяга до певного місця або свого житла.', 'mixed')">
+                        <div class="quest-title">Прихильність до місця</div>
+                        <div class="quest-desc">INHABITIVENESS</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('LIGET', 'ЛігET', 'Філіппінське: гнівна енергія змагання, що дає силу працювати або мститись.', 'mixed')">
+                        <div class="quest-title">ЛігET</div>
+                        <div class="quest-desc">LIGET</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('MAN', 'Ман', 'Гордість і співчуття одночасно.', 'mixed')">
+                        <div class="quest-title">Ман</div>
+                        <div class="quest-desc">MAN</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('PERVERSITY', 'Упертість / Збоченість намірів', 'Схильність робити навпаки тому, що вимагають або очікують.', 'mixed')">
+                        <div class="quest-title">Упертість / Збоченість намірів</div>
+                        <div class="quest-desc">PERVERSITY</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('PHILOPROGENITIVENESS', 'Філопрогенітивність', 'Безумовна любов і тяга до нащадків та їхнього захисту.', 'mixed')">
+                        <div class="quest-title">Філопрогенітивність</div>
+                        <div class="quest-desc">PHILOPROGENITIVENESS</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('PITY', 'Жалість', 'Суміш співчуття та відчуття вищості над тим, хто страждає.', 'mixed')">
+                        <div class="quest-title">Жалість</div>
+                        <div class="quest-desc">PITY</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('RIVALRY', 'Суперництво', 'Азартне відчуття конкуренції з кимось рівним.', 'mixed')">
+                        <div class="quest-title">Суперництво</div>
+                        <div class="quest-desc">RIVALRY</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('SCHADENFREUDE', 'Шаденфройде', 'Німецьке: радість або задоволення від чужих невдач чи горя.', 'mixed')">
+                        <div class="quest-title">Шаденфройде</div>
+                        <div class="quest-desc">SCHADENFREUDE</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('SMUGNESS', 'Самозадоволення', 'Надмірна впевненість у власній правоті чи вищості, що дратує інших.', 'mixed')">
+                        <div class="quest-title">Самозадоволення</div>
+                        <div class="quest-desc">SMUGNESS</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('WANDERLUST', 'Вандерлюст', 'Непереборна жага до мандрів і відкриття нових місць.', 'mixed')">
+                        <div class="quest-title">Вандерлюст</div>
+                        <div class="quest-desc">WANDERLUST</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="valence-group">
+                <div class="valence-header negative">
+                    <span>Негативні</span>
+                </div>
+                <div class="cards-grid">
+
+                    <div class="emotion-card neg" onclick="openModal('ABHIMAN', 'Абхіман', 'Гнів і біль через недбалість або зраду тих, кого ми сильно любимо (хінді).', 'negative')">
+                        <div class="quest-title">Абхіман</div>
+                        <div class="quest-desc">ABHIMAN</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('CHEESED (Off)', 'Сита по горло (Cheesed off)', 'Стан крайнього роздратування, коли все дістало.', 'negative')">
+                        <div class="quest-title">Сита по горло (Cheesed off)</div>
+                        <div class="quest-desc">CHEESED (Off)</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('DISGRUNTLEMENT', 'Невдоволення', 'Глухе, постійне буркотіння і невдоволення обставинами.', 'negative')">
+                        <div class="quest-title">Невдоволення</div>
+                        <div class="quest-desc">DISGRUNTLEMENT</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('EMBARRASSMENT', 'Зніяковіння', 'Гострий дискомфорт через соціальну незграбність або порушення норм.', 'negative')">
+                        <div class="quest-title">Зніяковіння</div>
+                        <div class="quest-desc">EMBARRASSMENT</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('EXASPERATION', 'Роздратування', 'Виснажливе роздратування від тривалої, нездоланної перешкоди.', 'negative')">
+                        <div class="quest-title">Роздратування</div>
+                        <div class="quest-desc">EXASPERATION</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('FRAUD Feeling Like a', 'Синдром самозванця', 'Нав\'язливий страх бути викритим як некомпетентна особа попри реальні досягнення.', 'negative')">
+                        <div class="quest-title">Синдром самозванця</div>
+                        <div class="quest-desc">FRAUD Feeling Like a</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('HAN', 'Хан', 'Колективне почуття горя, несправедливості та історичної травми (Корея).', 'negative')">
+                        <div class="quest-title">Хан</div>
+                        <div class="quest-desc">HAN</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('HOMESICKNESS', 'Туга за домом', 'Гостра прив\'язаність і туга за рідним місцем під час відсутності.', 'negative')">
+                        <div class="quest-title">Туга за домом</div>
+                        <div class="quest-desc">HOMESICKNESS</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('HUFF In a', 'Образа (Бути надутим)', 'Дріб\'язкова образа, супроводжувана демонстративним мовчанням.', 'negative')">
+                        <div class="quest-title">Образа (Бути надутим)</div>
+                        <div class="quest-desc">HUFF In a</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('HUMILIATION', 'Приниження', 'Руйнівне почуття втрати гідності та статусу в очах інших.', 'negative')">
+                        <div class="quest-title">Приниження</div>
+                        <div class="quest-desc">HUMILIATION</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('INDIGNATION', 'Обурення', 'Гнів, викликаний несправедливістю або нечесною поведінкою.', 'negative')">
+                        <div class="quest-title">Обурення</div>
+                        <div class="quest-desc">INDIGNATION</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('INSULTED Feeling', 'Відчуття образи', 'Гострий дискомфорт від спрямованої на нас неповаги або зневаги.', 'negative')">
+                        <div class="quest-title">Відчуття образи</div>
+                        <div class="quest-desc">INSULTED Feeling</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('LITOST', 'Літость', 'Чеське: суміш жалю до себе та гніву через усвідомлення власного убозтва.', 'negative')">
+                        <div class="quest-title">Літость</div>
+                        <div class="quest-desc">LITOST</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('MALU', 'Малу', 'Раптове відчуття ніяковості та нижчого статусу перед важливими людьми (Індонезія).', 'negative')">
+                        <div class="quest-title">Малу</div>
+                        <div class="quest-desc">MALU</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('OIME', 'Оіме', 'Японське почуття дискомфорту і тяжкості від соціального боргу перед кимось.', 'negative')">
+                        <div class="quest-title">Оіме</div>
+                        <div class="quest-desc">OIME</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('OVERWHELMED Feeling', 'Перевантаження', 'Стан, коли вимоги або емоції перевищують здатність з ними впоратись.', 'negative')">
+                        <div class="quest-title">Перевантаження</div>
+                        <div class="quest-desc">OVERWHELMED Feeling</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('PARANOIA', 'Параноя', 'Ірраціональний страх або підозра, що інші мають намір завдати шкоди.', 'negative')">
+                        <div class="quest-title">Параноя</div>
+                        <div class="quest-desc">PARANOIA</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('REPROACHFULNESS', 'Докірливість', 'Мовчазне засудження іншої людини, бажання викликати у неї провину.', 'negative')">
+                        <div class="quest-title">Докірливість</div>
+                        <div class="quest-desc">REPROACHFULNESS</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('RESENTMENT', 'Гірка образа', 'Хронічне обурення і відчуття несправедливості, що довго тліє всередині.', 'negative')">
+                        <div class="quest-title">Гірка образа</div>
+                        <div class="quest-desc">RESENTMENT</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('SELF-PITY', 'Жалість до себе', 'Егоцентричне занурення у власні страждання, почуття себе жертвою.', 'negative')">
+                        <div class="quest-title">Жалість до себе</div>
+                        <div class="quest-desc">SELF-PITY</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('SONG', 'Сонг', 'Справедливе обурення громади через порушення суспільних правил (Мікронезія).', 'negative')">
+                        <div class="quest-title">Сонг</div>
+                        <div class="quest-desc">SONG</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('SUSPICION', 'Підозра', 'Недовіра та сумніви щодо намірів або чесності інших.', 'negative')">
+                        <div class="quest-title">Підозра</div>
+                        <div class="quest-desc">SUSPICION</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('VENGEFULNESS', 'Мстивість', 'Бажання завдати шкоди тому, хто образив вас.', 'negative')">
+                        <div class="quest-title">Мстивість</div>
+                        <div class="quest-desc">VENGEFULNESS</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('VERGENZA AJENA', 'Іспанський сором', 'Відчуття сорому та незручності за дії іншої людини (Vergüenza ajena).', 'negative')">
+                        <div class="quest-title">Іспанський сором</div>
+                        <div class="quest-desc">VERGENZA AJENA</div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="category-section">
+            <h2 class="category-title">Високоспецифічні - Фізичні</h2>
+
+            <div class="valence-group">
+                <div class="valence-header positive">
+                    <span>Позитивні</span>
+                </div>
+                <div class="cards-grid">
+
+                    <div class="emotion-card pos" onclick="openModal('BASOREXIA', 'Базорексія', 'Раптове фізичне бажання когось поцілувати.', 'positive')">
+                        <div class="quest-title">Базорексія</div>
+                        <div class="quest-desc">BASOREXIA</div>
+                    </div>
+
+                    <div class="emotion-card pos" onclick="openModal('DOLCE FAR NIENTE', 'Солодке байдикування', 'Італійське (Dolce far niente): солодка насолода від того, що не робиш абсолютно нічого.', 'positive')">
+                        <div class="quest-title">Солодке байдикування</div>
+                        <div class="quest-desc">DOLCE FAR NIENTE</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="valence-group">
+                <div class="valence-header mixed">
+                    <span>Змішані</span>
+                </div>
+                <div class="cards-grid">
+
+                    <div class="emotion-card mix" onclick="openModal('BRABANT', 'Брабант', 'Графічна схильність перевіряти межі іншого, дражнячи його заради розваги.', 'mixed')">
+                        <div class="quest-title">Брабант</div>
+                        <div class="quest-desc">BRABANT</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('FORMAL FEELING A', 'Формальне відчуття', 'Холодне оніміння і механічність рухів, що настає одразу після сильного шоку.', 'mixed')">
+                        <div class="quest-title">Формальне відчуття</div>
+                        <div class="quest-desc">FORMAL FEELING A</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('HUNGER', 'Голод', 'Фізична потреба, що може трансформуватись у сильні емоції, такі як гнів (\'hangry\').', 'mixed')">
+                        <div class="quest-title">Голод</div>
+                        <div class="quest-desc">HUNGER</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('Hoard The Urge to', 'Бажання накопичувати', 'Компульсивна психологічна потреба збирати і зберігати непотрібні речі.', 'mixed')">
+                        <div class="quest-title">Бажання накопичувати</div>
+                        <div class="quest-desc">Hoard The Urge to</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('IKTSUARPOK', 'Ікцуарпок', 'Інуїтське: нетерпляче очікування гостя, коли постійно виходиш назовні перевірити, чи не йде він.', 'mixed')">
+                        <div class="quest-title">Ікцуарпок</div>
+                        <div class="quest-desc">IKTSUARPOK</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('ILINX', 'Ілінкс', 'Дивна радість від запаморочення, хаосу або легкого руйнування порядку.', 'mixed')">
+                        <div class="quest-title">Ілінкс</div>
+                        <div class="quest-desc">ILINX</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('KAUKOKAIPUU', 'Каукокайпуу', 'Фінське: гостра туга за місцем, де ти ніколи раніше не був.', 'mixed')">
+                        <div class="quest-title">Каукокайпуу</div>
+                        <div class="quest-desc">KAUKOKAIPUU</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('LAPPEL DU VIDE', 'Поклик безодні', 'Раптове, швидкоплинне бажання стрибнути, стоячи на краю прірви (L\'appel du vide).', 'mixed')">
+                        <div class="quest-title">Поклик безодні</div>
+                        <div class="quest-desc">LAPPEL DU VIDE</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('MEHAMEHA', 'Мехамеха', 'Гавайське: моторошний страх перед надприродним і духами в безлюдному місці.', 'mixed')">
+                        <div class="quest-title">Мехамеха</div>
+                        <div class="quest-desc">MEHAMEHA</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('MORBID CURIOSITY', 'Хвороблива цікавість', 'Потяг до вивчення того, що викликає огиду або страх (смерть, катастрофи).', 'mixed')">
+                        <div class="quest-title">Хвороблива цікавість</div>
+                        <div class="quest-desc">MORBID CURIOSITY</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('NOSTALGIA', 'Ностальгія', 'Солодка, але болісна туга за минулим, що вже ніколи не повернеться.', 'mixed')">
+                        <div class="quest-title">Ностальгія</div>
+                        <div class="quest-desc">NOSTALGIA</div>
+                    </div>
+
+                    <div class="emotion-card mix" onclick="openModal('RUINENLUST', 'Руїненлюст', 'Тяга та естетичне задоволення від споглядання закинутих будівель та руїн.', 'mixed')">
+                        <div class="quest-title">Руїненлюст</div>
+                        <div class="quest-desc">RUINENLUST</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="valence-group">
+                <div class="valence-header negative">
+                    <span>Негативні</span>
+                </div>
+                <div class="cards-grid">
+
+                    <div class="emotion-card neg" onclick="openModal('AMBIGUPHOBIA', 'Амбігуфобія', 'Гострий дискомфорт і страх перед неоднозначністю або невизначеністю.', 'negative')">
+                        <div class="quest-title">Амбігуфобія</div>
+                        <div class="quest-desc">AMBIGUPHOBIA</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('AWUMBUK', 'Авумбук', 'Тяжка порожнеча та інерція, що виникає після від\'їзду довгоочікуваних гостей (Папуа Нова Гвінея).', 'negative')">
+                        <div class="quest-title">Авумбук</div>
+                        <div class="quest-desc">AWUMBUK</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('CLAUSTROPHOBIA', 'Клаустрофобія', 'Панічний страх замкненого або тісного простору.', 'negative')">
+                        <div class="quest-title">Клаустрофобія</div>
+                        <div class="quest-desc">CLAUSTROPHOBIA</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('COLLYWOBBLES The', 'Колівоблз', 'Фізичне бурчання в животі та нудота, спричинені сильним нервуванням.', 'negative')">
+                        <div class="quest-title">Колівоблз</div>
+                        <div class="quest-desc">COLLYWOBBLES The</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('CYBERCHONDRIA', 'Кіберхондрія', 'Тривога, викликана нав\'язливим пошуком симптомів хвороб в інтернеті.', 'negative')">
+                        <div class="quest-title">Кіберхондрія</div>
+                        <div class="quest-desc">CYBERCHONDRIA</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('DISAPPEAR The Desire to', 'Бажання зникнути', 'Гостре соціальне бажання розчинитися в повітрі від незручності.', 'negative')">
+                        <div class="quest-title">Бажання зникнути</div>
+                        <div class="quest-desc">DISAPPEAR The Desire to</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('HEEBIE-JEEBIES The', 'Хібі-джібіз', 'Мурашки по шкірі та неприємний холодок від чогось моторошного або огидного.', 'negative')">
+                        <div class="quest-title">Хібі-джібіз</div>
+                        <div class="quest-desc">HEEBIE-JEEBIES The</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('MATUTOLYPEA', 'Матутоліпея', 'Поганий настрій і легка депресія вранці, що минає вдень.', 'negative')">
+                        <div class="quest-title">Матутоліпея</div>
+                        <div class="quest-desc">MATUTOLYPEA</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('MIFFED A Bit', 'Злегка роздратований (Miffed)', 'Легка, дрібна образа на незначну нетактовність.', 'negative')">
+                        <div class="quest-title">Злегка роздратований (Miffed)</div>
+                        <div class="quest-desc">MIFFED A Bit</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('NGINYIWARRARRINGU', 'Нгіньїварраррінгу', 'Раптовий інстинктивний страх, що змушує миттєво схопитися і втекти (Австралія).', 'negative')">
+                        <div class="quest-title">Нгіньїварраррінгу</div>
+                        <div class="quest-desc">NGINYIWARRARRINGU</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('PEUR DES ESPACES', 'Агорафобія (Peur des espaces)', 'Страх відкритих просторів і вулиць.', 'negative')">
+                        <div class="quest-title">Агорафобія (Peur des espaces)</div>
+                        <div class="quest-desc">PEUR DES ESPACES</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('PI YE A Fit of Q', 'Напад образи (Pique)', 'Раптовий спалах обурення через уражену гордість.', 'negative')">
+                        <div class="quest-title">Напад образи (Pique)</div>
+                        <div class="quest-desc">PI YE A Fit of Q</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('POSTAL Going', 'Злетіти з котушок (Going Postal)', 'Раптовий і неконтрольований гнів на робочому місці, що веде до насильства.', 'negative')">
+                        <div class="quest-title">Злетіти з котушок (Going Postal)</div>
+                        <div class="quest-desc">POSTAL Going</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('RINGXIETY', 'Рингзаєті', 'Фантомна ілюзія того, що телефон вібрує або дзвонить.', 'negative')">
+                        <div class="quest-title">Рингзаєті</div>
+                        <div class="quest-desc">RINGXIETY</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('ROAD RAGE', 'Дорожній гнів', 'Неконтрольована агресія за кермом автомобіля.', 'negative')">
+                        <div class="quest-title">Дорожній гнів</div>
+                        <div class="quest-desc">ROAD RAGE</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('TECHNOSTRESS', 'Технострес', 'Емоційне вигорання і тривога від постійного використання комп\'ютерів та гаджетів.', 'negative')">
+                        <div class="quest-title">Технострес</div>
+                        <div class="quest-desc">TECHNOSTRESS</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('TORSCHLUSSPANIK', 'Торшлюсспанік', 'Німецьке: паніка перед зачиненими дверима; страх, що час і можливості закінчуються.', 'negative')">
+                        <div class="quest-title">Торшлюсспанік</div>
+                        <div class="quest-desc">TORSCHLUSSPANIK</div>
+                    </div>
+
+                    <div class="emotion-card neg" onclick="openModal('UMPTY', 'Ампті', 'Специфічний стан, коли здається, що абсолютно все йде не так.', 'negative')">
+                        <div class="quest-title">Ампті</div>
+                        <div class="quest-desc">UMPTY</div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+    
+    <div class="mobile-action-bar">
+        <button class="btn-random" onclick="randomEmotion()">Випадкова емоція</button>
+    </div>
+
+    <button id="scrollTopBtn" class="scroll-to-top" onclick="scrollToTop()">↑</button>
+
+    <!-- Modal Window -->
+    <div class="modal-overlay" id="emotionModal" onclick="closeModal(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-gradient-bg" id="modalGradient"></div>
+            <div class="modal-content-wrap">
+                <div class="modal-header">
+                    <div class="modal-title-area">
+                        <h2 id="modalTitle">Назва Емоції</h2>
+                        <div class="modal-eng" id="modalEngTitle">ORIGINAL: NAME</div>
+                    </div>
+                    <button class="modal-close" onclick="closeModal()">×</button>
+                </div>
+                <div class="modal-text" id="modalDesc">
+                    Детальне тлумачення емоції українською мовою буде тут.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(engName, ukrTitle, ukrDesc, valenceClass) {
+            document.getElementById('modalTitle').innerText = ukrTitle;
+            document.getElementById('modalEngTitle').innerText = engName;
+            document.getElementById('modalDesc').innerText = ukrDesc;
+            
+            const gradientBg = document.getElementById('modalGradient');
+            if(valenceClass === 'positive') {
+                gradientBg.style.background = 'radial-gradient(ellipse at top, rgba(251,194,235,0.2), transparent)';
+            } else if (valenceClass === 'negative') {
+                gradientBg.style.background = 'radial-gradient(ellipse at top, rgba(48,207,208,0.2), transparent)';
+            } else {
+                gradientBg.style.background = 'radial-gradient(ellipse at top, rgba(168,237,234,0.2), transparent)';
+            }
+            
+            document.getElementById('emotionModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(e) {
+            document.getElementById('emotionModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closeModal();
+            }
+        });
+        
+        function randomEmotion() {
+            const cards = document.querySelectorAll('.emotion-card');
+            if(cards.length > 0) {
+                const randomCard = cards[Math.floor(Math.random() * cards.length)];
+                randomCard.click();
+            }
+        }
+
+        function filterEmotions() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.emotion-card');
+            
+            cards.forEach(card => {
+                const title = card.querySelector('.quest-title').innerText.toLowerCase();
+                const desc = card.querySelector('.quest-desc').innerText.toLowerCase();
+                if (title.includes(query) || desc.includes(query)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            document.querySelectorAll('.category-section').forEach(section => {
+                let sectionHasVisibleCards = false;
+                section.querySelectorAll('.valence-group').forEach(group => {
+                    const visibleCards = Array.from(group.querySelectorAll('.emotion-card')).some(card => card.style.display !== 'none');
+                    if (visibleCards) {
+                        group.style.display = 'flex';
+                        sectionHasVisibleCards = true;
+                    } else {
+                        group.style.display = 'none';
+                    }
+                });
+                section.style.display = sectionHasVisibleCards ? 'flex' : 'none';
+            });
+        }
+        
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+        
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('scrollTopBtn');
+            if (window.scrollY > 300) {
+                btn.classList.add('visible');
+            } else {
+                btn.classList.remove('visible');
+            }
+        });
+    </script>
+</body>
+</html>
