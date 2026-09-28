@@ -171,6 +171,16 @@ def generate_html():
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Плавна Аура | База Емоцій</title>
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="База Емоцій">
+    <meta property="og:description" content="Інтерактивна енциклопедія людських почуттів. Досліджуйте відтінки емоцій через призму плавності та естетики.">
+    <meta property="og:image" content="https://yarovision.github.io/amae/og-image.jpg">
+    <meta property="og:url" content="https://yarovision.github.io/amae/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://yarovision.github.io/amae/og-image.jpg">
+    
     <link rel="icon" type="image/jpeg" href="favicon.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
